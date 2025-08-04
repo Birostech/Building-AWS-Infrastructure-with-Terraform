@@ -6,3 +6,5 @@ crash.log
 *.tfvars
 .terraform.lock.hcl
 tfplan
+
+#files to be ignored
