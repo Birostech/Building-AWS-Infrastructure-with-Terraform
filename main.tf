@@ -234,7 +234,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# Target Group for ALB forwarding HTTP to instances on port 80
+# Target Group for ALB 
 resource "aws_lb_target_group" "target_group" {
   name     = "app-tg"
   port     = 80
@@ -251,8 +251,6 @@ resource "aws_lb_target_group" "target_group" {
     matcher             = "200-399"
   }
 }
-
-# Launch Template 
 
 # Security group for the private EC2 instances (ASG)
 resource "aws_security_group" "ec2_asg" {
