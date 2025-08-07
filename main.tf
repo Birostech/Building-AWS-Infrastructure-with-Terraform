@@ -10,8 +10,8 @@ resource "aws_vpc" "major" {
 # public subnet 1 and 2 for ALB
 
 resource "aws_subnet" "public_subnet" {
-  vpc_id            = aws_vpc.major.id
-  cidr_block        = "10.0.0.0/23"
+  vpc_id     = aws_vpc.major.id
+  cidr_block = "10.0.0.0/23"
   availability_zone = "us-east-1a"
 
   tags = {
@@ -20,8 +20,8 @@ resource "aws_subnet" "public_subnet" {
 }
 
 resource "aws_subnet" "public_subnet_2" {
-  vpc_id            = aws_vpc.major.id
-  cidr_block        = "10.0.2.0/23"
+  vpc_id     = aws_vpc.major.id
+  cidr_block = "10.0.2.0/23"
   availability_zone = "us-east-1b"
 
   tags = {
@@ -32,8 +32,8 @@ resource "aws_subnet" "public_subnet_2" {
 # Private subnet 1 and 2 for EC2 in Target Group
 
 resource "aws_subnet" "private_subnet" {
-  vpc_id            = aws_vpc.major.id
-  cidr_block        = var.private_subnet_cidr
+  vpc_id     = aws_vpc.major.id
+  cidr_block = var.private_subnet_cidr
   availability_zone = "us-east-1a"
 
   tags = {
@@ -42,8 +42,8 @@ resource "aws_subnet" "private_subnet" {
 }
 
 resource "aws_subnet" "private_subnet_2" {
-  vpc_id            = aws_vpc.major.id
-  cidr_block        = var.private_subnet_cidr_2
+  vpc_id     = aws_vpc.major.id
+  cidr_block = var.private_subnet_cidr_2
   availability_zone = "us-east-1b"
 
   tags = {
@@ -72,19 +72,19 @@ resource "aws_route_table" "main-igw-route" {
 }
 
 resource "aws_route_table_association" "public_subnet" {
-  subnet_id      = aws_subnet.public_subnet.id
+  subnet_id         = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.main-igw-route.id
 }
 
 resource "aws_route_table_association" "public_subnet_2" {
-  subnet_id      = aws_subnet.public_subnet_2.id
+  subnet_id         = aws_subnet.public_subnet_2.id
   route_table_id = aws_route_table.main-igw-route.id
 }
 
 # creation of eip
 
 resource "aws_eip" "for_nat" {
-  domain = "vpc"
+  domain   = "vpc"
 }
 
 resource "aws_nat_gateway" "nat" {
@@ -100,7 +100,7 @@ resource "aws_route_table" "private_subnet" {
   vpc_id = aws_vpc.major.id
 
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat.id
   }
 
@@ -110,7 +110,7 @@ resource "aws_route_table" "private_subnet" {
 }
 
 resource "aws_route_table_association" "private_subnet" {
-  subnet_id      = aws_subnet.private_subnet.id
+  subnet_id         = aws_subnet.private_subnet_2.id
   route_table_id = aws_route_table.private_subnet.id
 }
 
@@ -153,7 +153,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
 
 # Database
 resource "aws_db_subnet_group" "database_subnet_group" {
-  name = "database_subnet"
+  name       = "database_subnet"
   subnet_ids = [
     aws_subnet.private_subnet.id,
     aws_subnet.private_subnet_2.id
@@ -194,15 +194,15 @@ resource "aws_security_group" "rds" {
 # db instance
 
 resource "aws_db_instance" "rds_instance" {
-  allocated_storage      = 20
-  engine                 = "mysql"
-  engine_version         = "8.0"
-  instance_class         = "db.t3.micro"
-  username               = var.db_username
-  password               = var.db_password
-  parameter_group_name   = "default.mysql8.0"
-  skip_final_snapshot    = true
-  db_subnet_group_name   = aws_db_subnet_group.database_subnet_group.name
+  allocated_storage    = 20
+  engine               = "mysql"
+  engine_version       = "8.0"
+  instance_class       = "db.t3.micro" 
+  username             = var.db_username
+  password             = var.db_password
+  parameter_group_name = "default.mysql8.0"
+  skip_final_snapshot  = true
+  db_subnet_group_name = aws_db_subnet_group.database_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds.id]
 
   tags = {
@@ -234,7 +234,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-#Target Group for ALB forwarding HTTP to instances on port 80 
+# # Target Group for ALB forwarding HTTP to instances on port 80  
 resource "aws_lb_target_group" "target_group" {
   name     = "app-tg"
   port     = 80
@@ -261,19 +261,19 @@ resource "aws_security_group" "ec2_asg" {
   vpc_id      = aws_vpc.major.id
 
   ingress {
-    description     = "Allow HTTP from ALB"
-    from_port       = var.private_ec2_port
-    to_port         = var.private_ec2_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.securi_group.id]
+    description                   = "Allow HTTP from ALB"
+    from_port                   = var.private_ec2_port
+    to_port                     = var.private_ec2_port
+    protocol                    = "tcp"
+    security_groups             = [aws_security_group.securi_group.id]
   }
 
-  ingress {
-    description     = "Allow HTTPS from ALB"
-    from_port       = var.private_ec2_port_2
-    to_port         = var.private_ec2_port_2
-    protocol        = "tcp"
-    security_groups = [aws_security_group.securi_group.id]
+   ingress {
+    description                 = "Allow HTTPS from ALB"
+    from_port                   = var.private_ec2_port_2
+    to_port                     = var.private_ec2_port_2
+    protocol                    = "tcp"
+    security_groups             = [aws_security_group.securi_group.id]
   }
 
   egress {
@@ -291,7 +291,7 @@ resource "aws_security_group" "ec2_asg" {
 
 resource "aws_launch_template" "ec2_template" {
   name_prefix   = "ec2_template"
-  image_id      = "ami-08a6efd148b1f7504"
+  image_id      = "ami-08a6efd148b1f7504" 
   instance_type = "t2.micro"
   key_name      = var.key_name
 
@@ -300,7 +300,7 @@ resource "aws_launch_template" "ec2_template" {
     security_groups             = [aws_security_group.ec2_asg.id]
   }
 
-  user_data = base64encode(<<EOF
+     user_data = base64encode(<<EOF
 #!/bin/bash
 yum update -y
 yum install -y nginx
@@ -315,11 +315,11 @@ EOF
 
 # Auto Scaling Group with desired capacity and scaling policy
 resource "aws_autoscaling_group" "main_asg" {
-  name                = "main-asg"
-  max_size            = 2
-  min_size            = 1
-  desired_capacity    = 1
-  vpc_zone_identifier = [aws_subnet.private_subnet.id, aws_subnet.private_subnet_2.id]
+  name                      = "main-asg"
+  max_size                  = 2
+  min_size                  = 1
+  desired_capacity          = 1
+  vpc_zone_identifier       = [aws_subnet.private_subnet.id, aws_subnet.private_subnet_2.id]
   launch_template {
     id      = aws_launch_template.ec2_template.id
     version = "$Latest"
